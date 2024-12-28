@@ -1,3 +1,7 @@
+pub trait InstructionHandler {
+    fn execute(&mut self, instruction: Instruction);
+}
+
 #[allow(non_camel_case_types)]
 #[derive(Debug)]
 pub enum Instruction {

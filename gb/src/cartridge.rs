@@ -1,5 +1,6 @@
 pub trait Cartridge {
     fn read(&self, addr: u16) -> u8;
+    fn set(&mut self, addr: u16, value: u8);
 }
 
 #[derive(Debug)]
@@ -24,7 +25,15 @@ impl Cartridge for NoMbc {
         match addr {
             0..=0x7fff => self.rom[addr as usize],
             0xa000..=0xbfff => self.ram[addr as usize],
-            _ => panic!("Unable to read address {:#X} in cartridge", { addr }),
+            _ => unreachable!(),
+        }
+    }
+
+    fn set(&mut self, addr: u16, byte: u8) {
+        match addr {
+            0xa000..=0xbfff => self.ram[addr as usize] = byte,
+            0..=0x7fff => panic!("Attempt to write to a read-only ROM address {:#X}", addr),
+            _ => unreachable!(),
         }
     }
 }
