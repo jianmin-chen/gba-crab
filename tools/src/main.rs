@@ -30,6 +30,7 @@ struct Operand {
 
 #[derive(Deserialize, Debug)]
 struct Instruction {
+    cycles: Vec<u8>,
     mnemonic: String,
     operands: Vec<Operand>,
     bytes: usize,
@@ -49,28 +50,12 @@ fn main() {
     let mut cases = File::create("cases.rs").unwrap();
     let mut variants = File::create("variants.rs").unwrap();
 
+    let mut cycles = File::create("cycles.rs").unwrap();
+
     while let Some(entry) = instructions.next() {
         let (opcode, instruction) = entry;
 
         if instruction.mnemonic.starts_with("ILLEGAL") {
-            continue;
-        } else if instruction.mnemonic.starts_with("PREFIX") {
-            // Special instruction.
-            //
-            // There is a PREFIX opcode
-            // that treats the next byte as an additional opcode,
-            // pointing to a whole new table ($CB $xx).
-            //
-            // This means we get even jankier and
-            // introduce a new enum variant later on
-            // in a different file!
-            write!(&mut variants, "PREFIX(PrefixInstruction),\n").unwrap();
-            write!(
-                &mut cases,
-                "{} => Instruction::PREFIX(self.fetch_prefix()),\n",
-                opcode.to_lowercase()
-            )
-            .unwrap();
             continue;
         }
 
@@ -92,6 +77,33 @@ fn main() {
                     mnemonic.push_str("_DEC");
                 }
             }
+        }
+
+        // Write cycles.
+        write!(&mut cycles, "Instruction::{}", mnemonic).unwrap();
+        if instruction.bytes > 1 || instruction.mnemonic.starts_with("PREFIX") {
+            write!(&mut cycles, "(_)").unwrap();
+        }
+        write!(&mut cycles, " => {},\n", instruction.cycles[0] / 4).unwrap();
+
+        if instruction.mnemonic.starts_with("PREFIX") {
+            // Special instruction.
+            //
+            // There is a PREFIX opcode
+            // that treats the next byte as an additional opcode,
+            // pointing to a whole new table ($CB $xx).
+            //
+            // This means we get even jankier and
+            // introduce a new enum variant later on
+            // in a different file!
+            write!(&mut variants, "PREFIX(PrefixInstruction),\n").unwrap();
+            write!(
+                &mut cases,
+                "{} => Instruction::PREFIX(self.fetch_prefix()),\n",
+                opcode.to_lowercase()
+            )
+            .unwrap();
+            continue;
         }
 
         write!(&mut variants, "{mnemonic}").unwrap();
@@ -123,6 +135,8 @@ fn main() {
     let mut prefixed_cases = File::create("prefixed_cases.rs").unwrap();
     let mut prefixed_variants = File::create("prefixed_variants.rs").unwrap();
 
+    let mut prefixed_cycles = File::create("prefixed_cycles.rs").unwrap();
+
     while let Some(entry) = instructions.next() {
         let (opcode, instruction) = entry;
 
@@ -141,6 +155,14 @@ fn main() {
             }
         }
 
+        write!(
+            &mut prefixed_cycles,
+            "PrefixInstruction::{} => {},\n",
+            mnemonic,
+            instruction.cycles[0] / 4
+        )
+        .unwrap();
+
         write!(&mut prefixed_variants, "{mnemonic},\n").unwrap();
         write!(
             &mut prefixed_cases,
@@ -149,5 +171,4 @@ fn main() {
         )
         .unwrap();
     }
-
 }

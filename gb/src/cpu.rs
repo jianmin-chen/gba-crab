@@ -583,7 +583,7 @@ impl<'ppu> InstructionHandler for Cpu<'ppu> {
             Instruction::LD_A16_SP(x) => {
                 self.mmu.set(x, (self.stack_pointer & 0xf0) as u8);
                 self.mmu.set(x + 1, (self.stack_pointer & 0xf) as u8);
-            },
+            }
             Instruction::XOR_ADDR_A_A => self.registers.a = 0,
             Instruction::LD_HL_N16(x) => self.registers.update_hl(x),
             Instruction::LD_HL_DEC_A => {
@@ -616,12 +616,13 @@ impl<'ppu> InstructionHandler for Cpu<'ppu> {
                     self.program_counter =
                         self.program_counter.saturating_add_signed(signed_x as i16);
                 }
-            },
+            }
             Instruction::JR_Z_E8(x) => {
                 // Jump to x if Z flag is set.
                 if self.registers.f & 0x80 == 128 {
                     let signed_x = signed(x);
-                    self.program_counter = self.program_counter.saturating_add_signed(signed_x as i16);
+                    self.program_counter =
+                        self.program_counter.saturating_add_signed(signed_x as i16);
                 }
             }
             Instruction::JR_E8(x) => {
@@ -686,7 +687,7 @@ impl<'ppu> InstructionHandler for Cpu<'ppu> {
             Instruction::LD_A_DE => {
                 let de = RegisterPair(self.registers.d, self.registers.e);
                 self.registers.a = self.mmu.read(de.as_word());
-            },
+            }
             Instruction::CALL_A16(x) => {
                 // Call address A16.
                 //
@@ -695,7 +696,7 @@ impl<'ppu> InstructionHandler for Cpu<'ppu> {
                 self.stack.push(self.program_counter);
                 self.stack_pointer -= 1;
                 self.program_counter = x;
-            },
+            }
             Instruction::CALL_Z_A16(x) => {
                 // Call address A16, if Z is set.
                 if self.registers.f & 0x80 == 0x80 {
@@ -709,12 +710,12 @@ impl<'ppu> InstructionHandler for Cpu<'ppu> {
                 self.stack.push(self.registers.b as u16);
                 self.stack_pointer -= 1;
                 self.stack.push(self.registers.c as u16);
-            },
+            }
             Instruction::RLA_ADDR => {
                 let msb = self.registers.a >> 7 == 1;
                 self.registers.a = self.registers.a << 1;
                 self.registers.set_c_flag(msb);
-            },
+            }
             Instruction::POP_BC => {
                 self.registers.c = self.stack.pop().unwrap() as u8;
                 self.stack_pointer += 1;
@@ -760,11 +761,11 @@ impl<'ppu> InstructionHandler for Cpu<'ppu> {
             Instruction::LD_HL_INC_A => {
                 let hl = RegisterPair(self.registers.h, self.registers.l);
                 self.mmu.set(hl.as_word(), self.registers.a);
-            },
+            }
             Instruction::INC_HL => {
                 let hl = RegisterPair(self.registers.h, self.registers.l);
                 self.registers.update_hl(hl.as_word() + 1);
-            },
+            }
             Instruction::INC_BC => {
                 let bc = RegisterPair(self.registers.b, self.registers.c);
                 self.registers.update_bc(bc.as_word() + 1);
@@ -775,7 +776,7 @@ impl<'ppu> InstructionHandler for Cpu<'ppu> {
             }
             Instruction::DEC_BC => {
                 let bc = RegisterPair(self.registers.b, self.registers.c);
-                self.registers.update_bc(bc.as_word() - 1); 
+                self.registers.update_bc(bc.as_word() - 1);
             }
             Instruction::RET => {
                 // Return from subroutine, aka POP PC.
@@ -788,7 +789,7 @@ impl<'ppu> InstructionHandler for Cpu<'ppu> {
             Instruction::LD_D_A => self.registers.d = self.registers.a,
             Instruction::CP_ADDR_A_N8(x) => {
                 // Compare the value in register A with the value N8.
-                // 
+                //
                 // This subtracts the value n8 from A and sets flags accordingly,
                 // but discards the result.
                 let overflow_sub = self.registers.a.overflowing_sub(x);
@@ -801,7 +802,7 @@ impl<'ppu> InstructionHandler for Cpu<'ppu> {
             Instruction::LD_A16_A(x) => self.mmu.set(x, self.registers.a),
             Instruction::LD_L_N8(x) => self.registers.l = x,
             Instruction::LDH_A_A8(x) => self.registers.a = self.mmu.read(0xff00 + (x as u16)),
-            Instruction::NOP => {},
+            Instruction::NOP => {}
             Instruction::SUB_ADDR_A_B => {
                 let overflow_sub = self.registers.a.overflowing_sub(self.registers.b);
 
@@ -817,7 +818,8 @@ impl<'ppu> InstructionHandler for Cpu<'ppu> {
             Instruction::ADC_ADDR_A_B => {
                 // ADd the value in B plus the carry flag to A.
                 let carry = (self.registers.f & 0xf0 != 0) as u8;
-                let half_carry = ((self.registers.a & 0xf) + (self.registers.b & 0xf) + carry) > 0xf;
+                let half_carry =
+                    ((self.registers.a & 0xf) + (self.registers.b & 0xf) + carry) > 0xf;
 
                 let overflow_carry = self.registers.b.overflowing_add(carry);
                 let overflow_add = self.registers.a.overflowing_add(overflow_carry.0);
@@ -825,7 +827,8 @@ impl<'ppu> InstructionHandler for Cpu<'ppu> {
                 self.registers.set_z_flag(overflow_add.0 == 0);
                 self.registers.set_n_flag(false);
                 self.registers.set_h_flag(half_carry);
-                self.registers.set_c_flag(overflow_carry.1 || overflow_add.1);
+                self.registers
+                    .set_c_flag(overflow_carry.1 || overflow_add.1);
             }
             Instruction::ADC_ADDR_A_C => {
                 let carry = (self.registers.f & 0xf0 != 0) as u8;
@@ -837,7 +840,8 @@ impl<'ppu> InstructionHandler for Cpu<'ppu> {
                 self.registers.set_z_flag(overflow_add.0 == 0);
                 self.registers.set_n_flag(false);
                 self.registers.set_h_flag(half_carry);
-                self.registers.set_c_flag(overflow_carry.1 || overflow_add.1);
+                self.registers
+                    .set_c_flag(overflow_carry.1 || overflow_add.1);
             }
             Instruction::ADC_ADDR_A_E => {
                 let carry = (self.registers.f & 0xf0 != 0) as u8;
@@ -849,7 +853,8 @@ impl<'ppu> InstructionHandler for Cpu<'ppu> {
                 self.registers.set_z_flag(overflow_add.0 == 0);
                 self.registers.set_n_flag(false);
                 self.registers.set_h_flag(half_carry);
-                self.registers.set_c_flag(overflow_carry.1 || overflow_add.1);
+                self.registers
+                    .set_c_flag(overflow_carry.1 || overflow_add.1);
             }
             Instruction::ADC_ADDR_A_N8(x) => {
                 let carry = (self.registers.f & 0xf0 != 0) as u8;
@@ -861,7 +866,8 @@ impl<'ppu> InstructionHandler for Cpu<'ppu> {
                 self.registers.set_z_flag(overflow_add.0 == 0);
                 self.registers.set_n_flag(false);
                 self.registers.set_h_flag(half_carry);
-                self.registers.set_c_flag(overflow_carry.1 || overflow_add.1);
+                self.registers
+                    .set_c_flag(overflow_carry.1 || overflow_add.1);
             }
             _ => {
                 panic!("Reached unknown instruction {:?}", instruction);
@@ -908,7 +914,7 @@ impl Flags {
             z: byte & 0x80 == 1,
             n: byte & 0x40 == 1,
             h: byte & 0x20 == 1,
-            c: byte & 0x10 == 1
+            c: byte & 0x10 == 1,
         }
     }
 }

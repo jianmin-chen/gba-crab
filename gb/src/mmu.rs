@@ -35,7 +35,7 @@ impl<'ppu> Mmu<'ppu> {
         let mbc_type = rom[0x0147];
         let cartridge: Box<dyn Cartridge> = match mbc_type {
             0 => Box::new(NoMbc::from(rom)),
-            _ => todo!("MBC not implemented: {}", mbc_type)
+            _ => todo!("MBC not implemented: {}", mbc_type),
         };
         self.cartridge = Some(cartridge);
     }
@@ -50,7 +50,7 @@ impl<'ppu> Mmu<'ppu> {
             0..=0x7fff => {
                 if self.in_boot_rom && addr <= 0xff {
                     return self.boot_rom[addr as usize];
-                } 
+                }
 
                 if let Some(cartridge) = self.cartridge.as_ref() {
                     cartridge.read(addr)

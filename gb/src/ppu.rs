@@ -18,7 +18,7 @@ pub struct Ppu {
     //
     // The window is visible (if enabled) when both coordinates are in the range
     // x: [0, 166], y: [0, 143],
-    // thus (7, 0) place the window at the top left of the screen, 
+    // thus (7, 0) place the window at the top left of the screen,
     // completely covering the background.
     pub top_left_window: Coord,
 
@@ -46,7 +46,7 @@ pub struct Ppu {
     pub obj_enable: bool,
 
     // Enable in regular mode, priority in CGB.
-    pub bg_window_enable_priority: bool, 
+    pub bg_window_enable_priority: bool,
 
     // Let's just deal with the original Game Boy palette first.
     pub palette: [Color; 4],
@@ -55,12 +55,12 @@ pub struct Ppu {
 #[derive(Debug)]
 pub struct Coord {
     x: u8,
-    y: u8
+    y: u8,
 }
 
 impl Coord {
     pub fn default() -> Self {
-        Self{x: 0, y: 0}
+        Self { x: 0, y: 0 }
     }
 }
 
@@ -69,7 +69,7 @@ pub enum Color {
     White,
     LightGray,
     DarkGray,
-    Black
+    Black,
 }
 
 impl Color {
@@ -79,14 +79,14 @@ impl Color {
             1 => Color::LightGray,
             2 => Color::DarkGray,
             3 => Color::Black,
-            _ => panic!("Invalid color")
+            _ => panic!("Invalid color"),
         }
     }
 }
 
 impl Ppu {
     pub fn new() -> Self {
-        Self{
+        Self {
             screen: [Color::White; 160 * 144],
 
             cgb: false,
@@ -104,12 +104,12 @@ impl Ppu {
 
             bg_window_addressing_mode: 0x8800,
 
-            obj_size: Coord{x: 8, y: 8},
+            obj_size: Coord { x: 8, y: 8 },
             obj_enable: false,
 
             bg_window_enable_priority: false,
 
-            palette: [Color::White; 4]
+            palette: [Color::White; 4],
         }
     }
 
@@ -120,7 +120,7 @@ impl Ppu {
             0xff4a => self.top_left_window.y,
             0xff4b => self.top_left_window.x,
             0xff44 => self.scanline.x,
-            _ => todo!("PPU read {:#X}", addr)
+            _ => todo!("PPU read {:#X}", addr),
         }
     }
 
@@ -133,13 +133,13 @@ impl Ppu {
                 self.window_tile_map = match byte & 0x40 {
                     0 => 0x9800,
                     0x40 => 0x9c00,
-                    _ => unreachable!()
+                    _ => unreachable!(),
                 };
-                
+
                 self.bg_tile_map = match byte & 0x08 {
                     0 => 0x9800,
                     0x08 => 0x9c00,
-                    _ => unreachable!()
+                    _ => unreachable!(),
                 };
 
                 self.window_enable = byte & 0x20 != 0;
@@ -147,13 +147,13 @@ impl Ppu {
                 self.bg_window_addressing_mode = match byte & 0x10 {
                     0 => 0x8800,
                     0x10 => 0x8000,
-                    _ => unreachable!()
+                    _ => unreachable!(),
                 };
 
                 self.obj_size = match byte & 0x04 {
-                    0 => Coord{x: 8, y: 8},
-                    0x04 => Coord{x: 8, y: 16},
-                    _ => unreachable!()
+                    0 => Coord { x: 8, y: 8 },
+                    0x04 => Coord { x: 8, y: 16 },
+                    _ => unreachable!(),
                 };
 
                 self.obj_enable = byte & 0x02 != 0;
@@ -171,8 +171,8 @@ impl Ppu {
                 self.palette[1] = Color::from((byte & 0x30) >> 4);
                 self.palette[2] = Color::from((byte & 0xc) >> 2);
                 self.palette[3] = Color::from(byte & 0x03);
-            },
-            _ => todo!("PPU address {:#X}", addr)
+            }
+            _ => todo!("PPU address {:#X}", addr),
         }
     }
 }

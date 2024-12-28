@@ -21,7 +21,7 @@ impl<'ppu> Emu<'ppu> {
         mmu.load_cartridge(rom);
         Self {
             ppu,
-            cpu: Cpu::new(mmu)
+            cpu: Cpu::new(mmu),
         }
     }
 }
